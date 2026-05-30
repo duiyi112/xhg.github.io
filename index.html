@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>灵犀空间 · 组件化主页 | 影视大厅 + 智能便签</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 10% 20%, rgba(10, 20, 35, 1) 0%, rgba(0, 5, 15, 1) 100%);
+            min-height: 100vh;
+            padding: 2rem 2rem 3rem;
+            color: #eef5ff;
+        }
+
+        /* 主容器：Bento 网格布局 */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header 区域 */
+        .hero-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .title-area h1 {
+            font-size: 2.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #FFFFFF 0%, #9bb8e6 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .title-area p {
+            color: #a0bbdf;
+            margin-top: 0.4rem;
+            font-weight: 400;
+        }
+
+        .date-badge {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            padding: 0.5rem 1.2rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 0.5px solid rgba(255,255,255,0.2);
+        }
+
+        /* Bento Grid 核心 */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            transition: opacity 0.2s ease;
+        }
+
+        /* 毛玻璃卡片基类 */
+        .glass-card {
+            background: rgba(18, 28, 40, 0.55);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(28, 40, 58, 0.7);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        .widget-padding {
+            padding: 1.4rem 1.5rem;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .widget-header h3 {
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .more-icon {
+            color: #8aa7d5;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            cursor: default;
+        }
+
+        /* 列跨度 */
+        .col-span-3 { grid-column: span 3; }
+        .col-span-4 { grid-column: span 4; }
+        .col-span-5 { grid-column: span 5; }
+        .col-span-6 { grid-column: span 6; }
+        .col-span-7 { grid-column: span 7; }
+        .col-span-8 { grid-column: span 8; }
+        .col-span-12 { grid-column: span 12; }
+
+        /* 现有组件样式 (欢迎、快捷、待办等) */
+        .welcome-stats {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .greeting {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .stat-row {
+            display: flex;
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1.5rem;
+            padding: 0.8rem 1rem;
+            flex: 1;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #c6e0ff;
+        }
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .shortcut-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+            text-align: center;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .shortcut-item i {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+            display: inline-block;
+            color: #bdd4ff;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .task-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1.5px solid #7c9fcf;
+            background: transparent;
+        }
+        .ai-suggest {
+            background: linear-gradient(110deg, rgba(70, 130, 200, 0.2), rgba(0,0,0,0));
+            border-left: 3px solid #5d9eff;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+        }
+        .placeholder-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+            text-align: center;
+            color: #a2c2ff;
+        }
+        .plus-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.6;
+        }
+
+        /* ---------- 嵌入式便签组件样式 (已保留) ---------- */
+        .notes-widget-container { width: 100%; height: 100%; display: flex; flex-direction: column; background: transparent; }
+        .notes-inner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 12px; }
+        .notes-tab-group { display: flex; background: rgba(0, 0, 0, 0.3); border-radius: 3rem; padding: 0.2rem; }
+        .notes-tab-btn { background: transparent; border: none; padding: 0.4rem 1.2rem; border-radius: 2rem; font-size: 0.8rem; font-weight: 500; color: #ccdeff; cursor: pointer; transition: 0.2s; }
+        .notes-tab-btn.active { background: rgba(255, 255, 255, 0.2); color: white; backdrop-filter: blur(4px); }
+        .add-note-compact { background: #4f7eb3; border: none; color: white; padding: 0.4rem 1rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 500; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
+        .inline-create-area { background: rgba(0, 0, 0, 0.2); border-radius: 1.2rem; padding: 0.8rem; margin-bottom: 1.2rem; display: none; flex-wrap: wrap; gap: 0.8rem; }
+        .inline-create-area input, .inline-create-area textarea { background: rgba(20, 30, 45, 0.7); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 1rem; padding: 0.5rem 0.8rem; font-size: 0.8rem; color: white; font-family: inherit; flex: 1; }
+        .inline-submit { background: #2e6a9e; border: none; border-radius: 1.5rem; padding: 0 1rem; color: white; font-weight: 500; cursor: pointer; }
+        .notes-scroll-area { max-height: 460px; overflow-y: auto; padding-right: 4px; }
+        .note-item-compact { background: rgba(255, 255, 255, 0.08); border-radius: 1.2rem; margin-bottom: 0.8rem; padding: 0.8rem; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+        .note-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .note-title-compact { font-weight: 600; font-size: 0.95rem; color: #eef5ff; }
+        .note-actions button { background: transparent; border: none; color: #aac3e0; margin-left: 8px; cursor: pointer; font-size: 0.8rem; }
+        .restore-btn-sm { background: rgba(80, 140, 200, 0.3); border: none; border-radius: 1rem; padding: 0.2rem 0.6rem; font-size: 0.65rem; color: #cde2ff; cursor: pointer; }
+
+        /* 影视视图 (大厅) 毛玻璃风格 */
+        .movie-hall-view {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(16px);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            margin-top: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.15);
+            display: none;
+        }
+        .movie-hall-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+        }
+        .movie-hall-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #FFD966, #FFA559);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .back-home-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .back-home-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .movie-card {
+            background: rgba(25, 35, 50, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .movie-card:hover {
+            transform: scale(1.02);
+            background: rgba(45, 65, 90, 0.8);
+            border-color: #ffb347;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+        .movie-icon {
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            color: #ffcf8a;
+        }
+        .movie-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.3rem;
+        }
+        .movie-url {
+            font-size: 0.65rem;
+            opacity: 0.7;
+            word-break: break-all;
+        }
+
+        /* 通用弹出提醒 */
+        .snackbar, .modal-mask { /* 沿用已有样式，略加位置 */
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e2f3fdd;
+            backdrop-filter: blur(12px);
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            display: flex;
+            gap: 1.5rem;
+            z-index: 2100;
+            transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .snackbar.show { transform: translateX(-50%) translateY(0); }
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-mask.active { visibility: visible; opacity: 1; }
+        .confirm-modal { background: #1e2a36; border-radius: 2rem; padding: 1.6rem; text-align: center; max-width: 320px; border: 1px solid #3d5a77; }
+
+        @media (max-width: 1024px) {
+            body { padding: 1.2rem; }
+            .bento-grid { gap: 1rem; }
+            .col-span-3, .col-span-4, .col-span-5, .col-span-6, .col-span-7, .col-span-8 { grid-column: span 12; }
+        }
+        footer { margin-top: 2rem; text-align: center; font-size: 0.7rem; opacity: 0.5; }
+    </style>
+</head>
+<body>
+<div class="dashboard" id="dashboardRoot">
+    <!-- 头部始终显示 -->
+    <div class="hero-section">
+        <div class="title-area">
+            <h1><i class="fas fa-cube"></i> 灵犀·组件中心</h1>
+            <p>模块化小组件生态 · 影视大厅 + 智能便签 | 防误删 & 一键跳转</p>
+        </div>
+        <div class="date-badge" id="liveDate"></div>
+    </div>
+
+    <!-- 主Bento网格视图 (主页) -->
+    <div id="mainBentoView">
+        <div class="bento-grid">
+            <!-- 欢迎组件 -->
+            <div class="glass-card col-span-5">
+                <div class="widget-padding welcome-stats">
+                    <div><div class="greeting">🌤️ 影迷好, 探索者</div><div style="font-size: 0.85rem; opacity: 0.8;">影视大厅 · 六站直达 · 点击下方卡片开启</div></div>
+                    <div class="stat-row">
+                        <div class="stat-item"><div class="stat-number">6</div><div>影视站点</div></div>
+                        <div class="stat-item"><div class="stat-number">秒开</div><div>新标签页</div></div>
+                        <div class="stat-item"><div class="stat-number">便签</div><div>安全防误删</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 影视入口卡片 (醒目) -->
+            <div class="glass-card col-span-3" id="movieEntranceCard" style="cursor: pointer;">
+                <div class="widget-padding" style="text-align: center;">
+                    <i class="fas fa-film" style="font-size: 2.5rem; color: #ffbc6e; margin-bottom: 0.5rem; display: inline-block;"></i>
+                    <h3 style="font-weight: 700; font-size: 1.3rem;">🎬 影视大厅</h3>
+                    <p style="font-size: 0.8rem; margin-top: 6px;">点击进入 · 收藏级影视导航</p>
+                    <div style="margin-top: 12px;"><i class="fas fa-arrow-right"></i> 立即探索</div>
+                </div>
+            </div>
+
+            <!-- 快捷入口组件 -->
+            <div class="glass-card col-span-4">
+                <div class="widget-padding">
+                    <div class="widget-header"><h3><i class="fas fa-th-large"></i> 小组件集市</h3><i class="fas fa-ellipsis-h more-icon"></i></div>
+                    <div class="shortcut-grid">
+                        <div class="shortcut-item"><i class="fas fa-sticky-note"></i><div>智能便签</div></div>
+                        <div class="shortcut-item"><i class="fas fa-tv"></i><div>影视大厅</div></div>
+                        <div class="shortcut-item"><i class="fas fa-chart-line"></i><div>数据看板</div></div>
+                        <div class="shortcut-item"><i class="fas fa-cloud-sun"></i><div>天气</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 完整便签模块 (嵌入式) -->
+            <div class="glass-card col-span-7">
+                <div class="widget-padding" style="padding: 1rem 1.2rem;">
+                    <div class="notes-widget-container">
+                        <div class="notes-inner-header">
+                            <div class="notes-tab-group" id="widgetTabBar">
+                                <button class="notes-tab-btn active" data-wtab="notes">📝 我的便签</button>
+                                <button class="notes-tab-btn" data-wtab="trash">🗑️ 回收站</button>
+                            </div>
+                            <button class="add-note-compact" id="widgetAddNoteBtn"><i class="fas fa-plus"></i> 新建便签</button>
+                        </div>
+                        <div id="inlineCreatePanel" class="inline-create-area">
+                            <input type="text" id="widgetNoteTitle" placeholder="标题">
+                            <textarea id="widgetNoteContent" placeholder="内容..."></textarea>
+                            <button id="widgetConfirmCreate" class="inline-submit"><i class="fas fa-check"></i> 添加</button>
+                        </div>
+                        <div class="notes-scroll-area" id="widgetNotesList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 待办建议组件 -->
+            <div class="glass-card col-span-3">
+                <div class="widget-padding">
+                    <div class="widget-header"><h3><i class="fas fa-check-circle"></i> 主动待办</h3></div>
+                    <div class="task-item"><div class="task-check"></div><span>🎬 体验影视大厅</span></div>
+                    <div class="task-item"><div class="task-check"></div><span>🔄 测试便签撤销/恢复</span></div>
+                    <div class="ai-suggest"><i class="fas fa-robot"></i> 便签数据自动存储，删除可撤回</div>
+                </div>
+            </div>
+
+            <!-- 占位扩展 -->
+            <div class="glass-card col-span-4">
+                <div class="widget-padding placeholder-widget">
+                    <i class="fas fa-cube plus-icon"></i>
+                    <div>AI 摘要组件 · 即将解锁</div>
+                </div>
+            </div>
+            <div class="glass-card col-span-8">
+                <div class="widget-padding">
+                    <div class="widget-header"><h3><i class="fas fa-chart-simple"></i> 2026 · UI 风向标</h3></div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                        <div><span class="stat-number">Bento Grid</span><br>模块化主流</div>
+                        <div><span class="stat-number">Glassmorphism</span><br>精致毛玻璃</div>
+                        <div><span class="stat-number">防误删交互</span><br>二次确认+撤回</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer><i class="fas fa-shield-alt"></i> 便签模块防误删 · 影视大厅六站直连 · 点击卡片新标签页安全跳转</footer>
+    </div>
+
+    <!-- 影视大厅视图 (初始隐藏) -->
+    <div id="movieHallView" class="movie-hall-view">
+        <div class="movie-hall-header">
+            <h2><i class="fas fa-clapperboard"></i> 影视大厅 · 极速导航</h2>
+            <button class="back-home-btn" id="backToHomeBtn"><i class="fas fa-home"></i> 返回主页</button>
+        </div>
+        <div class="movie-grid" id="movieGridContainer">
+            <!-- 动态生成影视卡片 -->
+        </div>
+    </div>
+</div>
+
+<!-- 全局 Snackbar & 确认模态框 (便签模块使用) -->
+<div id="globalSnackbar" class="snackbar">
+    <span><i class="fas fa-undo-alt"></i> 便签已移至回收站</span>
+    <button class="undo-btn" id="globalUndoBtn">撤销</button>
+</div>
+<div id="globalConfirmModal" class="modal-mask">
+    <div class="confirm-modal">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>确认操作</h3>
+        <p id="modalMsg">是否将便签移至回收站？</p>
+        <div><button class="btn-cancel" id="modalCancelBtn">取消</button><button class="btn-confirm" id="modalConfirmBtn">确认</button></div>
+    </div>
+</div>
+
+<script>
+    // ----------------------------- 影视数据 (根据用户提供) ---------------------------------
+    const movieSites = [
+        { name: "Omofun", url: "https://omofun01.xyz/", icon: "fa-tv" },
+        { name: "奈飞 (Netflix)", url: "https://www.netflixgc.net/", icon: "fa-netflix" },
+        { name: "影视网", url: "https://czzyv.com/", icon: "fa-video" },
+        { name: "喵物次元", url: "https://www.mwcy.net/", icon: "fa-cat" },
+        { name: "樱花动漫", url: "https://www.yinhuadm.xyz/", icon: "fa-fan" },
+        { name: "囧次元", url: "https://jocydm.cc/", icon: "fa-face-grin-tongue-squint" }
+    ];
+
+    // 渲染影视卡片
+    function renderMovieHall() {
+        const container = document.getElementById('movieGridContainer');
+        if(!container) return;
+        container.innerHTML = '';
+        movieSites.forEach(site => {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+            // 图标修正 (fontawesome兼容)
+            let iconClass = site.icon;
+            if(iconClass === 'fa-netflix') iconClass = 'fa-film';
+            if(iconClass === 'fa-video') iconClass = 'fa-play-circle';
+            if(iconClass === 'fa-cat') iconClass = 'fa-paw';
+            if(iconClass === 'fa-fan') iconClass = 'fa-feather';
+            if(iconClass === 'fa-face-grin-tongue-squint') iconClass = 'fa-laugh-squint';
+            card.innerHTML = `
+                <div class="movie-icon"><i class="fas ${iconClass}"></i></div>
+                <div class="movie-title">${escapeHtml(site.name)}</div>
+                <div class="movie-url">${new URL(site.url).hostname}</div>
+            `;
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.open(site.url, '_blank');
+            });
+            container.appendChild(card);
+        });
+    }
+
+    // 切换视图：主页 <-> 影视大厅
+    const mainBento = document.getElementById('mainBentoView');
+    const movieHall = document.getElementById('movieHallView');
+    const movieEntrance = document.getElementById('movieEntranceCard');
+    const backBtn = document.getElementById('backToHomeBtn');
+
+    function showHomeView() {
+        if(mainBento) mainBento.style.display = 'block';
+        if(movieHall) movieHall.style.display = 'none';
+    }
+    function showMovieHall() {
+        if(mainBento) mainBento.style.display = 'none';
+        if(movieHall) {
+            movieHall.style.display = 'block';
+            renderMovieHall(); // 每次打开渲染确保最新
+        }
+    }
+
+    if(movieEntrance) movieEntrance.addEventListener('click', showMovieHall);
+    if(backBtn) backBtn.addEventListener('click', showHomeView);
+
+    // ----------------------------- 便签模块完整逻辑 (嵌入版 带防误删+撤销) ---------------------------------
+    const STORAGE_KEY = 'lingxi_embed_notes_v2';
+    let notes = [];
+    let currentWidgetTab = 'notes';
+    let pendingUndoNote = null;
+    let undoTimeout = null;
+
+    const notesListContainer = document.getElementById('widgetNotesList');
+    const createPanel = document.getElementById('inlineCreatePanel');
+    const addBtn = document.getElementById('widgetAddNoteBtn');
+    const confirmCreateBtn = document.getElementById('widgetConfirmCreate');
+    const titleInput = document.getElementById('widgetNoteTitle');
+    const contentInput = document.getElementById('widgetNoteContent');
+    const tabBtnsWidget = document.querySelectorAll('[data-wtab]');
+    const snackbar = document.getElementById('globalSnackbar');
+    const undoBtnGlobal = document.getElementById('globalUndoBtn');
+    const modalMask = document.getElementById('globalConfirmModal');
+    const modalMsg = document.getElementById('modalMsg');
+    const modalConfirm = document.getElementById('modalConfirmBtn');
+    const modalCancel = document.getElementById('modalCancelBtn');
+
+    function saveToLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(notes)); }
+    function loadFromLocal() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if(stored) notes = JSON.parse(stored);
+        else {
+            notes = [
+                { id: Date.now()+1, title: "🎬 影视清单", content: "omofun, 奈飞, 樱花动漫… 点击影视大厅直达", status: "active", createdAt: Date.now()-3600000, deletedAt: null },
+                { id: Date.now()+2, title: "设计备忘", content: "毛玻璃 + Bento 布局，撤销功能好用", status: "active", createdAt: Date.now()-7200000, deletedAt: null },
+            ];
+            saveToLocal();
+        }
+    }
+
+    function showConfirmDialog(message) {
+        return new Promise((resolve) => {
+            modalMsg.innerText = message;
+            modalMask.classList.add('active');
+            const onConfirm = () => { modalMask.classList.remove('active'); cleanup(); resolve(true); };
+            const onCancel = () => { modalMask.classList.remove('active'); cleanup(); resolve(false); };
+            function cleanup() { modalConfirm.removeEventListener('click', onConfirm); modalCancel.removeEventListener('click', onCancel); }
+            modalConfirm.addEventListener('click', onConfirm, { once: true });
+            modalCancel.addEventListener('click', onCancel, { once: true });
+        });
+    }
+
+    function showTempMessage(msg) {
+        const tempSnack = snackbar.cloneNode(true);
+        tempSnack.querySelector('.undo-btn').style.display = 'none';
+        tempSnack.querySelector('span').innerHTML = `<i class="fas fa-check-circle"></i> ${msg}`;
+        document.body.appendChild(tempSnack);
+        tempSnack.classList.add('show');
+        setTimeout(() => { tempSnack.classList.remove('show'); setTimeout(() => tempSnack.remove(), 300); }, 1800);
+    }
+    function hideSnackbar() { snackbar.classList.remove('show'); if(undoTimeout) clearTimeout(undoTimeout); pendingUndoNote = null; }
+    function showUndoSnackbar(deletedNote) {
+        if(undoTimeout) clearTimeout(undoTimeout);
+        pendingUndoNote = deletedNote;
+        snackbar.classList.add('show');
+        undoTimeout = setTimeout(() => { snackbar.classList.remove('show'); pendingUndoNote = null; }, 5000);
+    }
+
+    async function deleteNoteToTrash(noteId) {
+        const note = notes.find(n => n.id === noteId);
+        if(!note || note.status === 'deleted') return false;
+        const confirm = await showConfirmDialog(`确定将「${note.title || '无标题'}」移至回收站？\n5秒内可撤销。`);
+        if(!confirm) return false;
+        note.status = 'deleted';
+        note.deletedAt = Date.now();
+        saveToLocal();
+        showUndoSnackbar({ ...note });
+        renderWidgetView();
+        return true;
+    }
+    function performUndo() {
+        if(!pendingUndoNote) return;
+        const target = notes.find(n => n.id === pendingUndoNote.id);
+        if(target && target.status === 'deleted') {
+            target.status = 'active';
+            target.deletedAt = null;
+            saveToLocal();
+            renderWidgetView();
+            showTempMessage('已撤销删除');
+        } else if(!target) showTempMessage('便签已永久删除');
+        hideSnackbar();
+    }
+    function restoreFromTrash(noteId) {
+        const note = notes.find(n => n.id === noteId);
+        if(note && note.status === 'deleted') {
+            note.status = 'active';
+            note.deletedAt = null;
+            saveToLocal();
+            renderWidgetView();
+            showTempMessage(`已恢复「${note.title}」`);
+            if(pendingUndoNote && pendingUndoNote.id === noteId) hideSnackbar();
+        }
+    }
+    async function permanentlyDelete(noteId) {
+        const note = notes.find(n => n.id === noteId);
+        if(!note) return;
+        const confirm = await showConfirmDialog(`永久删除「${note.title}」？不可恢复！`);
+        if(!confirm) return;
+        const idx = notes.findIndex(n => n.id === noteId);
+        if(idx !== -1) { notes.splice(idx, 1); saveToLocal(); renderWidgetView(); showTempMessage('已永久删除'); if(pendingUndoNote && pendingUndoNote.id === noteId) hideSnackbar(); }
+    }
+    function addNewNote() {
+        let title = titleInput.value.trim();
+        let content = contentInput.value.trim();
+        if(title === '' && content === '') { showTempMessage('请填写标题或内容'); return; }
+        if(title === '') title = '无标题便签';
+        const newNote = { id: Date.now(), title, content, status: 'active', createdAt: Date.now(), deletedAt: null };
+        notes.unshift(newNote);
+        saveToLocal();
+        titleInput.value = ''; contentInput.value = '';
+        if(currentWidgetTab === 'trash') setWidgetTab('notes');
+        else renderWidgetView();
+        showTempMessage('便签已添加');
+        createPanel.style.display = 'none';
+    }
+    function editNoteInline(id) {
+        const note = notes.find(n => n.id === id);
+        if(!note) return;
+        const newTitle = prompt('编辑标题', note.title);
+        if(newTitle === null) return;
+        const newContent = prompt('编辑内容', note.content);
+        if(newContent === null) return;
+        note.title = newTitle.trim() || '无标题';
+        note.content = newContent;
+        saveToLocal();
+        renderWidgetView();
+        showTempMessage('已更新');
+    }
+    function renderWidgetView() {
+        const list = currentWidgetTab === 'notes' ? notes.filter(n => n.status === 'active') : notes.filter(n => n.status === 'deleted');
+        if(!notesListContainer) return;
+        if(list.length === 0) { notesListContainer.innerHTML = `<div style="text-align:center; padding:2rem; color:#9bb3d0;"><i class="fas fa-inbox"></i> ${currentWidgetTab === 'notes' ? '暂无便签' : '回收站为空'}</div>`; return; }
+        notesListContainer.innerHTML = '';
+        list.forEach(note => {
+            const card = document.createElement('div'); card.className = 'note-item-compact';
+            const dateInfo = currentWidgetTab === 'trash' ? `删除于 ${new Date(note.deletedAt).toLocaleString()}` : `创建 ${new Date(note.createdAt).toLocaleDateString()}`;
+            card.innerHTML = `
+                <div class="note-head"><span class="note-title-compact">${escapeHtml(note.title)}</span><div class="note-actions">
+                ${currentWidgetTab === 'notes' ? `<button class="edit-note-widget" data-id="${note.id}"><i class="fas fa-pen"></i></button>` : ''}
+                <button class="delete-note-widget" data-id="${note.id}"><i class="fas ${currentWidgetTab === 'notes' ? 'fa-trash-alt' : 'fa-skull-crossbones'}"></i></button></div></div>
+                <div class="note-content-compact">${escapeHtml(note.content) || '<span style="opacity:0.6;">无内容</span>'}</div>
+                <div class="note-meta-compact"><span>${dateInfo}</span>${currentWidgetTab === 'trash' ? `<button class="restore-btn-sm" data-id="${note.id}"><i class="fas fa-undo-alt"></i> 恢复</button>` : ''}</div>`;
+            notesListContainer.appendChild(card);
+        });
+        document.querySelectorAll('.edit-note-widget').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); editNoteInline(parseInt(btn.dataset.id)); }));
+        document.querySelectorAll('.delete-note-widget').forEach(btn => btn.addEventListener('click', async (e) => { e.stopPropagation(); const id = parseInt(btn.dataset.id); if(currentWidgetTab === 'notes') await deleteNoteToTrash(id); else await permanentlyDelete(id); }));
+        document.querySelectorAll('.restore-btn-sm').forEach(btn => btn.addEventListener('click', (e) => { restoreFromTrash(parseInt(btn.dataset.id)); }));
+    }
+    function setWidgetTab(tab) { currentWidgetTab = tab; tabBtnsWidget.forEach(btn => { if(btn.dataset.wtab === tab) btn.classList.add('active'); else btn.classList.remove('active'); }); renderWidgetView(); }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    function initWidget() { loadFromLocal(); setWidgetTab('notes'); addBtn.addEventListener('click', () => { createPanel.style.display = createPanel.style.display === 'none' ? 'flex' : 'none'; }); confirmCreateBtn.addEventListener('click', addNewNote); undoBtnGlobal.addEventListener('click', performUndo); tabBtnsWidget.forEach(btn => btn.addEventListener('click', () => setWidgetTab(btn.dataset.wtab))); modalMask.addEventListener('click', (e) => { if(e.target === modalMask) modalMask.classList.remove('active'); }); }
+    initWidget();
+
+    // 主页日期显示
+    const dateSpan = document.getElementById('liveDate');
+    if(dateSpan) dateSpan.innerText = new Date().toLocaleDateString('zh-CN', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+
+    // 初始确保影视大厅隐藏，主页显示
+    showHomeView();
+    // 预填充影视卡片渲染数据
+    renderMovieHall();
+</script>
+</body>
+</html>
